@@ -1,0 +1,73 @@
+global:
+  environment: <ENVIRONMENT> # ENVIRONMENT = uat
+  project: <SERVICE_NAME> # SERVICE_NAME = application-service
+  namespace: <NAMESPACE> # NAMESPACE = interop
+  istiogateway: istio-system/http-gateway
+  tag: latest
+  imagePullSecrets: harborlogin
+deployments:
+  - name: <SERVICE_NAME>
+    replicaCount: 1
+    containers:
+      - name: <SERVICE_NAME>
+        image:
+          name: harbor.go-yubi.in/<HARBOR_PROJECT>/<REPO_PRODUCT>-<REPO_SERVICE> # harbor.go-yubi.in/yubi-mena/interop-application-service
+          pullPolicy: Always
+        ports:
+          - <SERVICE_PORT>
+        resources:
+          limits:
+            cpu: 2
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 1Gi
+        secretName: <SERVICE_NAME>
+        configMapName: <SERVICE_NAME>
+        healthcheckPath: <HEALTHCHECK_PATH>
+        healthcheckPort: <HEALTHCHECK_PORT>
+    secrets:
+      secretManagerPath: /<PRODUCT_NAME>/<SERVICE_NAME>/secret # Vault store
+      secretStoreName: uat-secret-store
+    services:
+      ports:
+        - servicePort: 443
+          targetPort: <SERVICE_PORT>
+          protocol: TCP
+          name: port443
+    ingress:
+      enabled: true # <true/false>
+      domainurl:
+        - <ENDPOINT>
+    grpc:
+      enabled: true # <true/false>
+      grpcurl:
+        - <GRPC_ENDPOINT>
+      pathBasedRouting:
+        - route:
+            - destination:
+                host: <SERVICE_NAME>
+                port:
+                  number: <SERVICE_PORT>
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+  
+serviceaccount:
+  name: <SERVICE_NAME>-sa
+  iamrole: <ROLE_ARN>
+
+configmap:
+  - name: <SERVICE_NAME>
+    data: 
+      FLUENT_DESTINATION: <newrelic or loki>
+      FLUENT_LOKI_URL: https://dummy
+      FLUENT_TAG: <ENVIRONMENT>-<REGION>-<PRODUCT>-<SERVICE>
+      FLUENT_LOKI_ENV: <ENVIRONMENT>
+      SERVICE_STARTUP: <STARTUP_COMMAND>
+
+externalsecret:
+  enabled: true

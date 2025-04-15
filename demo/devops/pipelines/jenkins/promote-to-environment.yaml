@@ -1,0 +1,31 @@
+- job-template: !include: promote-to-environment.tmpl
+
+- project:
+    name: common-promote-docker
+    jobs:
+      - "{folder}/promote-to-{env}":
+          folder: "Yubi/NonPrd////demo"
+          env:  # (dev,qa,uat,stg,uat-uae,prd-uae)
+          service_name: demo
+          namespace: 
+          app_repo: otel
+          app_branch: master
+          chart_product: common
+          chart_service: helmchart
+          slave: 
+          cloud_provider: 
+          project: demo
+          app_org: credavenue
+      - "{folder}/promote-to-{env}":
+          folder: "Yubi/NonPrd////demo"
+          env:  # (dev,qa,uat,stg,uat-uae,prd-uae)
+          service_name: demo
+          namespace: 
+          app_repo: otel
+          app_branch: master
+          chart_product: common
+          chart_service: helmchart
+          slave: 
+          cloud_provider: 
+          project: demo
+          app_org: credavenue

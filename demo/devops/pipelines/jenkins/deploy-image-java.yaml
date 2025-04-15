@@ -1,0 +1,16 @@
+- job-template: !include: deploy-image-java.tmpl
+
+- project:
+    name: app-deploy
+    jobs:
+      - "{folder}/self-serve-deploy-app":
+          folder: "Yubi/NonPrd////demo"
+          env:  # (dev,qa,uat,stg,uat-uae,prd-uae)
+          service_name: demo
+          namespace: 
+          app_repo: otel
+          app_branch: master
+          chart_product: common
+          chart_service: helmchart
+          slave: 
+          cloud_provider: 

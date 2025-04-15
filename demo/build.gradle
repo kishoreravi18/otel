@@ -1,0 +1,75 @@
+plugins {
+	id 'java'
+	id 'jacoco'
+	id 'org.springframework.boot' version '3.2.4'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'com.gorylenko.gradle-git-properties' version '2.4.2'
+
+}
+
+group = 'com.yubi'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '21'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url 'https://yubi-artifact-155577958684.d.codeartifact.ap-south-1.amazonaws.com/maven/yubi-commons/'
+		credentials {
+			username "aws"
+			password System.env.CODEARTIFACT_AUTH_TOKEN
+		}
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+
+	
+	
+	
+	implementation 'io.temporal:temporal-sdk:1.17.0'
+	
+	implementation 'com.yubi:yubidrive.sdk.3x:1.0.1'
+	
+}
+
+jacocoTestReport {
+    dependsOn test
+    // Exclude model and entity packages from the test coverage report
+    afterEvaluate {
+       classDirectories.setFrom(files(classDirectories.files.collect {
+          fileTree(dir: it, exclude: [
+                '**/com/yubi/demo/model/**',
+                '**/com/yubi/demo/entity/**',
+                '**/com/yubi/demo/repository/**',
+                '**/com/yubi/demo/base/util/**',
+                '**/com/yubi/demo/config/**',
+                '**/com/yubi/demo/constant/**',
+                '**/com/yubi/demo/interceptor/**',
+                '**/com/yubi/demo/metric/**',
+                'com/yubi/demo/Application.class'
+          ])
+       }))
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+gitProperties {
+	keys = ['git.branch', 'git.commit.id', 'git.commit.user.name', 'git.commit.time', 'git.commit.message.full']
+	failOnNoGitDirectory = false // Set to false to prevent build failure if no Git repository is found
+}

@@ -1,0 +1,66 @@
+global:
+  environment: int
+  project: demo
+  namespace: commons
+  istiogateway: istio-system/http-gateway
+  tag: int-28a4f67-19052024-2
+  imagePullSecrets: harborlogin
+deployments:
+  - name: demo
+    replicaCount: 1
+    containers:
+      - name: demo
+        image:
+          name: harbor.go-yubi.in/yubi/common-demo
+          pullPolicy: Always
+        ports:
+          - 8080
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+          requests:
+            cpu: 2000m
+            memory: 2Gi
+        secretName: demo
+        configMapName: demo
+        healthcheckPath: /actuator/health
+        healthcheckPort: 8080
+    secrets:
+      secretManagerPath: /demo/k8s/int/secrets
+      secretStoreName: qa-secret-store
+    services:
+      ports:
+        - servicePort: 443
+          targetPort: 8080
+          protocol: TCP
+          name: port443
+    ingress:
+      enabled: true
+      domainurl:
+        - demo-qa.go-yubi.in
+      healthcheckPath: /
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+  
+serviceaccount:
+  name: demo-sa
+  iamrole: arn:aws:iam::090228812041:role/int-demo-eks-role-01
+configmap:
+  - name: demo
+    data: 
+      FLUENT_DESTINATION: newrelic
+      FLUENT_LOKI_URL: https://dummy
+      FLUENT_TAG: int-demo
+      FLUENT_LOKI_ENV: int
+      SERVICE_STARTUP: java -Dspring.profiles.active=qa -XX:MaxRAMPercentage=75.0 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp -javaagent:newrelic/newrelic.jar -jar app.jar
+      http_proxy: http://proxy.dso.cadevops.net:3331
+      https_proxy: http://proxy.dso.cadevops.net:3331
+      no_proxy: 169.254.169.254,localhost,cadevops.net,.svc.cluster.local
+
+externalsecret:
+  enabled: true
